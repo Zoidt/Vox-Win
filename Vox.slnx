@@ -1,8 +1,12 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Vox.Core/Vox.Core.csproj" />
+    <Project Path="src/Vox.Speech/Vox.Speech.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Vox.Core.Tests/Vox.Core.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Vox.Probe/Vox.Probe.csproj" />
   </Folder>
 </Solution>
