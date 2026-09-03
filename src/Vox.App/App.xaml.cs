@@ -35,13 +35,13 @@ public partial class App : Application
                 preview.Content = null;
                 var surface = new System.Windows.Controls.Border
                 {
-                    Background = (System.Windows.Media.Brush)Resources["BackgroundBrush"],
+                    Background = preview.Background,
                     Child = content, DataContext = previewController,
                     Width = 540, Height = 805
                 };
-                System.Windows.Documents.TextElement.SetForeground(surface, (System.Windows.Media.Brush)Resources["TextBrush"]);
-                System.Windows.Documents.TextElement.SetFontFamily(surface, new System.Windows.Media.FontFamily("Segoe UI"));
-                System.Windows.Documents.TextElement.SetFontSize(surface, 14);
+                System.Windows.Documents.TextElement.SetForeground(surface, preview.Foreground);
+                System.Windows.Documents.TextElement.SetFontFamily(surface, preview.FontFamily);
+                System.Windows.Documents.TextElement.SetFontSize(surface, preview.FontSize);
                 using var presentation = new System.Windows.Interop.HwndSource(new System.Windows.Interop.HwndSourceParameters("Vox layout render")
                 {
                     Width = 540, Height = 805, WindowStyle = unchecked((int)0x88000000)
