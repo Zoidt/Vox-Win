@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Data;
-using System.Windows.Input;
 using Vox.Core;
 using Vox.Windows;
 
@@ -13,7 +12,6 @@ public partial class MainWindow : Window
     private readonly VoxController _controller;
     private bool _loading = true;
     private bool _capturing;
-    private Key _modifierCandidate;
 
     public MainWindow(VoxController controller)
     {
@@ -21,9 +19,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         DataContext = controller;
         ApplyPreferences();
-        PreviewKeyDown += CaptureKeyDown;
-        PreviewKeyUp += CaptureKeyUp;
-        Deactivated += (_, _) => EndCapture(null);
+        _controller.ShortcutCaptureCompleted += EndCapture;
     }
 
     private void ApplyPreferences()
@@ -46,43 +42,14 @@ public partial class MainWindow : Window
 
     private void CaptureShortcut(object sender, RoutedEventArgs e)
     {
-        _capturing = true; _modifierCandidate = Key.None;
-        _controller.SuspendHotkey(true);
+        if (!_controller.BeginShortcutCapture())
+        {
+            _controller.SetStatus("Keyboard listener unavailable. Restart Vox to set a shortcut.");
+            return;
+        }
+        _capturing = true;
         ShortcutButton.Content = "Press a key… Esc cancels";
         ShortcutButton.Focus();
-    }
-
-    private static bool IsModifier(Key key) => key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt or Key.LeftShift or Key.RightShift or Key.LWin or Key.RWin;
-    private void CaptureKeyDown(object sender, KeyEventArgs e)
-    {
-        if (!_capturing) return;
-        e.Handled = true;
-        var key = e.Key == Key.System ? e.SystemKey : e.Key;
-        if (key == Key.Escape) { EndCapture(null); return; }
-        if (IsModifier(key)) { _modifierCandidate = key; return; }
-        if (key is Key.None or Key.ImeProcessed or Key.DeadCharProcessed) return;
-        var modifiers = HotkeyModifiers.None;
-        var labels = new List<string>();
-        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control)) { modifiers |= HotkeyModifiers.Control; labels.Add("Ctrl"); }
-        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt)) { modifiers |= HotkeyModifiers.Alt; labels.Add("Alt"); }
-        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)) { modifiers |= HotkeyModifiers.Shift; labels.Add("Shift"); }
-        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Windows)) { modifiers |= HotkeyModifiers.Windows; labels.Add("Win"); }
-        labels.Add(key.ToString());
-        EndCapture(new(KeyInterop.VirtualKeyFromKey(key), modifiers, string.Join(" + ", labels)));
-    }
-
-    private void CaptureKeyUp(object sender, KeyEventArgs e)
-    {
-        if (!_capturing) return;
-        e.Handled = true;
-        var key = e.Key == Key.System ? e.SystemKey : e.Key;
-        if (key != _modifierCandidate) return;
-        var label = key switch
-        {
-            Key.LeftCtrl => "Left Ctrl", Key.RightCtrl => "Right Ctrl", Key.LeftAlt => "Left Alt", Key.RightAlt => "Right Alt",
-            Key.LeftShift => "Left Shift", Key.RightShift => "Right Shift", Key.LWin => "Left Win", Key.RWin => "Right Win", _ => key.ToString()
-        };
-        EndCapture(new(KeyInterop.VirtualKeyFromKey(key), HotkeyModifiers.None, label));
     }
 
     private void EndCapture(Hotkey? shortcut)
@@ -90,7 +57,7 @@ public partial class MainWindow : Window
         if (!_capturing) return;
         _capturing = false;
         if (shortcut is not null) _controller.SaveSettings(_controller.Settings with { Shortcut = shortcut });
-        _controller.SuspendHotkey(false);
+        _controller.CancelShortcutCapture();
         ShortcutButton.SetBinding(ContentProperty, new Binding(nameof(VoxController.ShortcutLabel)));
     }
 

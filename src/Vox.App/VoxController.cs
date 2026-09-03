@@ -37,6 +37,7 @@ public sealed class VoxController : INotifyPropertyChanged, IAsyncDisposable
     private string? _lastTranscript;
     private double _modelProgress;
     public event PropertyChangedEventHandler? PropertyChanged;
+    public event Action<Hotkey?>? ShortcutCaptureCompleted;
     public VoxSettings Settings { get; private set; }
     public IReadOnlyList<MicrophoneOption> Microphones { get; private set; } = [new(null, "System default")];
     public string Status => _status;
@@ -87,6 +88,11 @@ public sealed class VoxController : INotifyPropertyChanged, IAsyncDisposable
                 _dispatcher.BeginInvoke(() => HandleKey(down, timestamp, target), DispatcherPriority.Input);
             };
             _keyboard.CancelPressed += () => _dispatcher.BeginInvoke(Cancel, DispatcherPriority.Input);
+            _keyboard.ShortcutCaptureCompleted += shortcut => _dispatcher.BeginInvoke(() =>
+            {
+                _keyboard.EndShortcutCapture();
+                ShortcutCaptureCompleted?.Invoke(shortcut);
+            }, DispatcherPriority.Input);
             RefreshMicrophones();
             Settings = Settings with { StartWithWindows = StartupRegistration.IsEnabled() };
             SetStatus(_store.LoadWarning ?? "Download the speech model to start.");
@@ -292,7 +298,14 @@ public sealed class VoxController : INotifyPropertyChanged, IAsyncDisposable
         catch (Exception) { SetStatus("No microphone is available. Connect one and choose Refresh."); }
     }
 
-    public void SuspendHotkey(bool suspended) { if (_keyboard is not null) _keyboard.Suspended = suspended; }
+    public bool BeginShortcutCapture()
+    {
+        if (_keyboard is null || !CanConfigure) return false;
+        _keyboard.BeginShortcutCapture();
+        return true;
+    }
+
+    public void CancelShortcutCapture() => _keyboard?.EndShortcutCapture();
 
     public void SaveSettings(VoxSettings updated)
     {
