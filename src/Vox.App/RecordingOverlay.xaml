@@ -1,0 +1,14 @@
+<Window x:Class="Vox.App.RecordingOverlay" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" WindowStyle="None" AllowsTransparency="True"
+        Background="Transparent" Topmost="True" ShowInTaskbar="False" ShowActivated="False" Focusable="False"
+        SizeToContent="WidthAndHeight" ResizeMode="NoResize">
+  <Border Background="#F0232934" BorderBrush="#566586" BorderThickness="1" CornerRadius="18" Padding="22,12">
+    <StackPanel Orientation="Horizontal">
+      <TextBlock Text="≋" Foreground="{StaticResource AccentBrush}" FontSize="30" VerticalAlignment="Center" Margin="0,0,15,0" />
+      <StackPanel>
+        <TextBlock Text="{Binding OverlayTitle}" FontWeight="SemiBold" />
+        <TextBlock Text="{Binding OverlayHint}" Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,4,0,0" />
+      </StackPanel>
+    </StackPanel>
+  </Border>
+</Window>

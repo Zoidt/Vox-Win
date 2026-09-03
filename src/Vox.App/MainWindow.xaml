@@ -1,0 +1,71 @@
+<Window x:Class="Vox.App.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Vox" Width="540" Height="805"
+        MinWidth="450" MinHeight="580" WindowStartupLocation="CenterScreen">
+  <Grid>
+    <Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="28,24,28,20">
+        <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+          <StackPanel Orientation="Horizontal"><TextBlock Text="≋" FontSize="30" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,0" /><TextBlock Text="Vox" FontSize="28" FontWeight="SemiBold" /></StackPanel>
+          <Border Grid.Column="1" Background="#293850" CornerRadius="12" Padding="10,5" VerticalAlignment="Center"><TextBlock Text="ON DEVICE" FontSize="10" Foreground="{StaticResource AccentBrush}" /></Border>
+        </Grid>
+        <TextBlock Text="Your voice, wherever you type." Foreground="{StaticResource MutedBrush}" Margin="0,0,0,25" />
+        <TextBlock Text="Recording" Style="{StaticResource MutedText}" Margin="0,0,0,9" />
+        <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="9">
+          <StackPanel>
+            <Grid Margin="14,12"><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="200" /></Grid.ColumnDefinitions>
+              <TextBlock Text="Shortcut" VerticalAlignment="Center" />
+              <Button x:Name="ShortcutButton" Grid.Column="1" Content="{Binding ShortcutLabel}" Click="CaptureShortcut" IsEnabled="{Binding CanConfigure}" ToolTip="Click, then press a key or key combination" />
+            </Grid>
+            <Border BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0" Padding="14,13">
+              <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="200" /></Grid.ColumnDefinitions>
+                <TextBlock Text="Activation" VerticalAlignment="Center" />
+                <StackPanel Grid.Column="1"><TextBlock Text="Hold to talk" /><TextBlock Text="Double-tap to lock recording" Style="{StaticResource MutedText}" Margin="0,3,0,0" /></StackPanel>
+              </Grid>
+            </Border>
+            <Border BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0" Padding="14,12">
+              <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="200" /></Grid.ColumnDefinitions>
+                <TextBlock Text="Microphone" VerticalAlignment="Center" />
+                <ComboBox x:Name="MicrophoneBox" Grid.Column="1" ItemsSource="{Binding Microphones}" SelectedValuePath="Id" SelectionChanged="MicrophoneChanged" IsEnabled="{Binding CanConfigure}" AutomationProperties.Name="Microphone">
+                  <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}" /></DataTemplate></ComboBox.ItemTemplate>
+                </ComboBox>
+              </Grid>
+            </Border>
+          </StackPanel>
+        </Border>
+        <Button Content="Refresh microphones" Click="RefreshMicrophones" HorizontalAlignment="Right" Padding="8,5" FontSize="11" Margin="0,7,0,20" IsEnabled="{Binding CanConfigure}" />
+        <TextBlock Text="Speech model" Style="{StaticResource MutedText}" Margin="0,0,0,9" />
+        <Border Background="#293850" CornerRadius="9" Padding="16,14">
+          <StackPanel>
+            <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock Text="Parakeet v3" FontWeight="SemiBold" /><TextBlock Grid.Column="1" Text="English" Foreground="{StaticResource AccentBrush}" FontSize="12" /></Grid>
+            <TextBlock Text="{Binding ModelStatus}" TextWrapping="Wrap" Style="{StaticResource MutedText}" Margin="0,5,0,0" />
+            <ProgressBar Height="3" Margin="0,12,0,0" Value="{Binding ModelProgress, Mode=OneWay}" Maximum="100" Foreground="{StaticResource AccentBrush}" Visibility="{Binding IsModelBusy, Converter={StaticResource BoolVisibility}}" />
+          </StackPanel>
+        </Border>
+        <Button Content="Download / repair model · 670 MB" Click="DownloadModel" Margin="0,10,0,0" Style="{StaticResource AccentButton}" Visibility="{Binding CanDownload, Converter={StaticResource BoolVisibility}}" />
+        <StackPanel Margin="0,20,0,16" IsEnabled="{Binding CanConfigure}">
+          <CheckBox x:Name="SoundCheck" Content="Sound cues" Checked="PreferencesChanged" Unchecked="PreferencesChanged" />
+          <CheckBox x:Name="StartupCheck" Content="Start with Windows" Checked="PreferencesChanged" Unchecked="PreferencesChanged" Margin="0,6,0,0" />
+        </StackPanel>
+        <Border BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0" Padding="0,17,0,0">
+          <StackPanel>
+            <TextBlock Text="{Binding Status}" TextWrapping="Wrap" FontSize="13" AutomationProperties.LiveSetting="Polite" />
+            <TextBlock Text="Use your shortcut in any text field. Escape cancels." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,16" />
+            <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+              <Button Content="Paste last again" Click="PasteLast" IsEnabled="{Binding HasTranscript}" />
+              <Button Grid.Column="1" Content="Copy last" Click="CopyLast" IsEnabled="{Binding HasTranscript}" Margin="8,0,0,0" />
+            </Grid>
+            <TextBlock Text="{Binding LastSummary}" Style="{StaticResource MutedText}" FontSize="11" Margin="0,8,0,0" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+    <Border Grid.Row="1" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0" Padding="18,10">
+      <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+        <TextBlock Text="Vox 0.1 · closing keeps the tray active" Style="{StaticResource MutedText}" FontSize="11" VerticalAlignment="Center" />
+        <Button Grid.Column="1" Content="Hide" Click="HideWindow" FontSize="11" Padding="10,5" />
+        <Button Grid.Column="2" Content="Quit" Click="QuitVox" FontSize="11" Padding="10,5" Margin="6,0,0,0" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>
