@@ -32,6 +32,7 @@ public sealed class VoxController : INotifyPropertyChanged, IAsyncDisposable
     private bool _disposed;
     private bool _replayNext;
     private readonly bool _preview;
+    private TextRewriter _rewriter;
     private string _status = "Preparing Vox…";
     private string _modelStatus = "Parakeet v3 · local speech recognition";
     private string? _lastTranscript;
@@ -43,6 +44,7 @@ public sealed class VoxController : INotifyPropertyChanged, IAsyncDisposable
     public string Status => _status;
     public string ModelStatus => _modelStatus;
     public string ShortcutLabel => Settings.Shortcut.Label;
+    public string ReplacementsLabel => $"Edit dictionary · {Settings.Replacements.Length}";
     public string LastSummary => _lastTranscript is null ? "No dictation yet" : "Last dictation available until you quit Vox";
     public bool HasTranscript => _lastTranscript is not null;
     public bool IsReady => _preview || _recognizer.IsReady;
@@ -72,7 +74,8 @@ public sealed class VoxController : INotifyPropertyChanged, IAsyncDisposable
         _dispatcher = dispatcher;
         _preview = preview;
         _store = new(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vox", "settings.json"));
-        Settings = preview ? new() : _store.Load();
+        Settings = preview ? new() { Replacements = [new("open ai", "OpenAI"), new("vox", "Vox")] } : _store.Load();
+        _rewriter = new TextRewriter(Settings.Replacements);
         _tapTimer = new DispatcherTimer(DispatcherPriority.Input, dispatcher) { Interval = TimeSpan.FromMilliseconds(20) };
         _tapTimer.Tick += (_, _) => { _tapTimer.Stop(); Apply(_gesture.Tick(Environment.TickCount64)); };
         _clock = new DispatcherTimer(DispatcherPriority.Background, dispatcher) { Interval = TimeSpan.FromMilliseconds(250) };
@@ -239,10 +242,12 @@ public sealed class VoxController : INotifyPropertyChanged, IAsyncDisposable
             var result = await _recognizer.TranscribeAsync(samples, 16000, token);
             token.ThrowIfCancellationRequested();
             if (string.IsNullOrWhiteSpace(result.Text)) { SetStatus("No speech detected. Try again closer to the microphone."); return; }
-            _lastTranscript = result.Text;
+            var text = _rewriter.Apply(result.Text);
+            if (string.IsNullOrWhiteSpace(text)) { SetStatus("Text replacements removed all text. Nothing was inserted."); return; }
+            _lastTranscript = text;
             Notify(nameof(HasTranscript)); Notify(nameof(LastSummary));
             _inserting = true; Refresh();
-            await _insertion.InsertAsync(result.Text, _target, token);
+            await _insertion.InsertAsync(text, _target, token);
             SetStatus($"Text sent · transcription {result.Elapsed.TotalMilliseconds:F0} ms");
         }
         catch (OperationCanceledException)
@@ -307,19 +312,28 @@ public sealed class VoxController : INotifyPropertyChanged, IAsyncDisposable
 
     public void CancelShortcutCapture() => _keyboard?.EndShortcutCapture();
 
-    public void SaveSettings(VoxSettings updated)
+    public void SuspendDictationHotkey(bool suspended)
     {
-        if (_preview || !CanConfigure || updated == Settings) return;
+        if (_keyboard is not null) _keyboard.Suspended = suspended;
+    }
+
+    public bool SaveSettings(VoxSettings updated)
+    {
+        if (_preview || !CanConfigure) return false;
+        if (updated == Settings) return true;
         try
         {
+            var rewriter = new TextRewriter(updated.Replacements);
             if (updated.StartWithWindows != Settings.StartWithWindows) StartupRegistration.SetEnabled(updated.StartWithWindows);
             _store.Save(updated);
             Settings = updated;
+            _rewriter = rewriter;
             if (_keyboard is not null) _keyboard.Shortcut = updated.Shortcut;
             SetStatus("Settings saved");
+            Notify(nameof(Settings)); Notify(nameof(ShortcutLabel)); Notify(nameof(ReplacementsLabel));
+            return true;
         }
-        catch (Exception ex) { SetStatus("Could not save settings: " + ex.Message); }
-        Notify(nameof(Settings)); Notify(nameof(ShortcutLabel));
+        catch (Exception ex) { SetStatus("Could not save settings: " + ex.Message); return false; }
     }
 
     public void SetStatus(string message) { _status = message; Notify(nameof(Status)); }

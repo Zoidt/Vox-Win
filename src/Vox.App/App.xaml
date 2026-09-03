@@ -15,6 +15,56 @@
       <Setter Property="Background" Value="{StaticResource BackgroundBrush}" />
     </Style>
     <Style x:Key="MutedText" TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource MutedBrush}" /><Setter Property="FontSize" Value="12" /></Style>
+    <Style TargetType="ScrollBar">
+      <Setter Property="Background" Value="{StaticResource BackgroundBrush}" />
+      <Setter Property="Width" Value="10" />
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ScrollBar">
+        <Grid Background="{TemplateBinding Background}">
+          <Track x:Name="PART_Track" IsDirectionReversed="True" Orientation="{TemplateBinding Orientation}"
+                 Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}" ViewportSize="{TemplateBinding ViewportSize}"
+                 Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+            <Track.DecreaseRepeatButton>
+              <RepeatButton x:Name="PageBefore" Command="ScrollBar.PageUpCommand" Focusable="False">
+                <RepeatButton.Template><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent" /></ControlTemplate></RepeatButton.Template>
+              </RepeatButton>
+            </Track.DecreaseRepeatButton>
+            <Track.Thumb>
+              <Thumb>
+                <Thumb.Template><ControlTemplate TargetType="Thumb"><Border Background="{StaticResource LineBrush}" CornerRadius="4" Margin="2" /></ControlTemplate></Thumb.Template>
+              </Thumb>
+            </Track.Thumb>
+            <Track.IncreaseRepeatButton>
+              <RepeatButton x:Name="PageAfter" Command="ScrollBar.PageDownCommand" Focusable="False">
+                <RepeatButton.Template><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent" /></ControlTemplate></RepeatButton.Template>
+              </RepeatButton>
+            </Track.IncreaseRepeatButton>
+          </Track>
+        </Grid>
+        <ControlTemplate.Triggers>
+          <Trigger Property="Orientation" Value="Horizontal">
+            <Setter TargetName="PART_Track" Property="IsDirectionReversed" Value="False" />
+            <Setter TargetName="PageBefore" Property="Command" Value="ScrollBar.PageLeftCommand" />
+            <Setter TargetName="PageAfter" Property="Command" Value="ScrollBar.PageRightCommand" />
+          </Trigger>
+        </ControlTemplate.Triggers>
+      </ControlTemplate></Setter.Value></Setter>
+      <Style.Triggers><Trigger Property="Orientation" Value="Horizontal"><Setter Property="Width" Value="Auto" /><Setter Property="Height" Value="10" /></Trigger></Style.Triggers>
+    </Style>
+    <Style TargetType="TextBox">
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+      <Setter Property="Background" Value="{StaticResource FieldBrush}" />
+      <Setter Property="CaretBrush" Value="{StaticResource TextBrush}" />
+      <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+      <Setter Property="Padding" Value="9,8" />
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TextBox">
+        <Border x:Name="FieldBorder" CornerRadius="5" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" Padding="{TemplateBinding Padding}">
+          <ScrollViewer x:Name="PART_ContentHost" />
+        </Border>
+        <ControlTemplate.Triggers>
+          <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="FieldBorder" Property="BorderBrush" Value="{StaticResource AccentBrush}" /></Trigger>
+        </ControlTemplate.Triggers>
+      </ControlTemplate></Setter.Value></Setter>
+    </Style>
     <Style TargetType="Button">
       <Setter Property="Foreground" Value="{StaticResource TextBrush}" /><Setter Property="Background" Value="{StaticResource PanelBrush}" />
       <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" /><Setter Property="Padding" Value="14,9" />

@@ -25,30 +25,38 @@ public partial class App : Application
         base.OnStartup(e);
         try
         {
-            if (e.Args is ["--render-preview", var path])
+            if (e.Args is ["--render-preview" or "--render-replacements-preview", var path])
             {
                 RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
                 await using var previewController = new VoxController(Dispatcher, true);
-                var preview = new MainWindow(previewController);
+                Window preview = e.Args[0] == "--render-replacements-preview"
+                    ? new TextReplacementsWindow(previewController) : new MainWindow(previewController);
+                if (preview is TextReplacementsWindow dictionary)
+                {
+                    dictionary.SampleInput.Text = "I use open ai with vox.";
+                    dictionary.SampleOutput.Text = new Vox.Core.TextRewriter(previewController.Settings.Replacements).Apply(dictionary.SampleInput.Text);
+                }
+                var width = (int)preview.Width;
+                var height = (int)preview.Height;
                 var content = (FrameworkElement)preview.Content;
                 preview.Content = null;
                 var surface = new System.Windows.Controls.Border
                 {
                     Background = preview.Background,
                     Child = content, DataContext = previewController,
-                    Width = 540, Height = 805
+                    Width = width, Height = height
                 };
                 System.Windows.Documents.TextElement.SetForeground(surface, preview.Foreground);
                 System.Windows.Documents.TextElement.SetFontFamily(surface, preview.FontFamily);
                 System.Windows.Documents.TextElement.SetFontSize(surface, preview.FontSize);
                 using var presentation = new System.Windows.Interop.HwndSource(new System.Windows.Interop.HwndSourceParameters("Vox layout render")
                 {
-                    Width = 540, Height = 805, WindowStyle = unchecked((int)0x88000000)
+                    Width = width, Height = height, WindowStyle = unchecked((int)0x88000000)
                 });
                 presentation.RootVisual = surface;
-                surface.Measure(new System.Windows.Size(540, 805)); surface.Arrange(new Rect(0, 0, 540, 805)); surface.UpdateLayout();
+                surface.Measure(new System.Windows.Size(width, height)); surface.Arrange(new Rect(0, 0, width, height)); surface.UpdateLayout();
                 await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle);
-                var bitmap = new RenderTargetBitmap(540, 805, 96, 96, PixelFormats.Pbgra32);
+                var bitmap = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
                 bitmap.Render(surface);
                 var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap));
                 Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
@@ -84,7 +92,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            if (e.Args is ["--render-preview", var failedPath])
+            if (e.Args is ["--render-preview" or "--render-replacements-preview", var failedPath])
             {
                 File.WriteAllText(failedPath + ".error.txt", ex.ToString());
                 Shutdown(1); return;

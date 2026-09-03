@@ -74,6 +74,14 @@ public partial class MainWindow : Window
         _controller.SaveSettings(_controller.Settings with { MicrophoneId = option.Id });
     }
     private void RefreshMicrophones(object sender, RoutedEventArgs e) { _loading = true; _controller.RefreshMicrophones(); ApplyPreferences(); }
+    private void EditReplacements(object sender, RoutedEventArgs e)
+    {
+        if (!_controller.CanConfigure) return;
+        EndCapture(null);
+        _controller.SuspendDictationHotkey(true);
+        try { new TextReplacementsWindow(_controller) { Owner = this }.ShowDialog(); }
+        finally { _controller.SuspendDictationHotkey(false); }
+    }
     private async void DownloadModel(object sender, RoutedEventArgs e) => await _controller.DownloadModelAsync();
     private void PasteLast(object sender, RoutedEventArgs e) { _controller.ArmReplay(); Hide(); }
     private void CopyLast(object sender, RoutedEventArgs e)

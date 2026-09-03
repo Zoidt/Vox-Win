@@ -45,6 +45,11 @@
           </StackPanel>
         </Border>
         <Button Content="Download / repair model · 670 MB" Click="DownloadModel" Margin="0,10,0,0" Style="{StaticResource AccentButton}" Visibility="{Binding CanDownload, Converter={StaticResource BoolVisibility}}" />
+        <Grid Margin="0,16,0,0">
+          <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+          <TextBlock Text="Text replacements" VerticalAlignment="Center" />
+          <Button Grid.Column="1" Content="{Binding ReplacementsLabel}" Click="EditReplacements" IsEnabled="{Binding CanConfigure}" Padding="12,8" />
+        </Grid>
         <StackPanel Margin="0,20,0,16" IsEnabled="{Binding CanConfigure}">
           <CheckBox x:Name="SoundCheck" Content="Sound cues" Checked="PreferencesChanged" Unchecked="PreferencesChanged" />
           <CheckBox x:Name="StartupCheck" Content="Start with Windows" Checked="PreferencesChanged" Unchecked="PreferencesChanged" Margin="0,6,0,0" />
