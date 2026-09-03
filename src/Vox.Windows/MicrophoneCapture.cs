@@ -34,10 +34,15 @@ public sealed class MicrophoneCapture : IDisposable
 
     public MicrophoneCapture(string? deviceId)
     {
-        _device = deviceId is null
-            ? _enumerator.GetDefaultAudioEndpoint(DataFlow.Capture, Role.Communications)
-            : _enumerator.GetDevice(deviceId);
-        _capture = new WasapiCapture(_device, true, 30);
+        try
+        {
+            _device = deviceId is null
+                ? _enumerator.GetDefaultAudioEndpoint(DataFlow.Capture, Role.Communications)
+                : _enumerator.GetDevice(deviceId);
+            try { _capture = new WasapiCapture(_device, true, 30); }
+            catch { _device.Dispose(); throw; }
+        }
+        catch { _enumerator.Dispose(); throw; }
         _capture.DataAvailable += (_, e) =>
         {
             var remaining = (long)_capture.WaveFormat.AverageBytesPerSecond * MaximumSeconds - _audio.Length;

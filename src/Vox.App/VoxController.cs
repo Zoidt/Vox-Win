@@ -44,6 +44,7 @@ public sealed class VoxController : INotifyPropertyChanged, IAsyncDisposable
     public string LastSummary => _lastTranscript is null ? "No dictation yet" : "Last dictation available until you quit Vox";
     public bool HasTranscript => _lastTranscript is not null;
     public bool IsReady => _preview || _recognizer.IsReady;
+    public bool HotkeyAvailable => _keyboard is not null;
     public bool IsModelBusy => _modelBusy;
     public bool CanConfigure => !_processing && _capture is null && !_modelBusy;
     public bool CanDownload => !_processing && _capture is null && !_modelBusy && !IsReady;
@@ -117,7 +118,7 @@ public sealed class VoxController : INotifyPropertyChanged, IAsyncDisposable
             Notify(nameof(ModelStatus));
             await _recognizer.LoadAsync(_models.DirectoryPath, _lifetime.Token);
             _modelStatus = "Ready · kept in memory · CPU";
-            SetStatus("Ready to dictate");
+            SetStatus(HotkeyAvailable ? "Ready to dictate" : "Keyboard listener unavailable. Restart Vox to try again.");
         }
         catch (OperationCanceledException) { }
         catch (Exception ex) { _modelStatus = "Model not ready"; SetStatus("Model setup failed: " + ex.Message); }
@@ -170,14 +171,19 @@ public sealed class VoxController : INotifyPropertyChanged, IAsyncDisposable
         {
             _session?.Dispose();
             _session = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
-            _capture = new MicrophoneCapture(Settings.MicrophoneId);
-            _capture.LimitReached += () => _dispatcher.BeginInvoke(() =>
+            var capture = new MicrophoneCapture(Settings.MicrophoneId);
+            _capture = capture;
+            capture.LimitReached += () => _dispatcher.BeginInvoke(() =>
             {
-                if (_capture is null || _processing) return;
+                if (_capture != capture || _processing) return;
                 _gesture.Complete();
                 _operation = FinishAsync(false);
             });
-            _capture.DeviceFailed += message => _dispatcher.BeginInvoke(() => { Cancel(); SetStatus(message); });
+            capture.DeviceFailed += message => _dispatcher.BeginInvoke(() =>
+            {
+                if (_capture != capture) return;
+                Cancel(); SetStatus(message);
+            });
             _started = Environment.TickCount64;
             if (Settings.SoundCues) System.Media.SystemSounds.Asterisk.Play();
             _capture.Start();
@@ -270,7 +276,14 @@ public sealed class VoxController : INotifyPropertyChanged, IAsyncDisposable
 
     public void RefreshMicrophones()
     {
-        try { Microphones = MicrophoneCapture.GetDevices(); Notify(nameof(Microphones)); }
+        try
+        {
+            var devices = MicrophoneCapture.GetDevices().ToList();
+            if (Settings.MicrophoneId is { } selected && devices.All(device => device.Id != selected))
+                devices.Add(new(selected, "Selected microphone (unavailable)"));
+            Microphones = devices;
+            Notify(nameof(Microphones));
+        }
         catch (Exception) { SetStatus("No microphone is available. Connect one and choose Refresh."); }
     }
 
