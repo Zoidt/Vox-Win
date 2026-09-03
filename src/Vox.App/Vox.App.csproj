@@ -8,12 +8,14 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AssemblyName>Vox</AssemblyName>
     <Version>0.1.0</Version>
+    <ApplicationIcon>Assets\vox.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Vox.Core/Vox.Core.csproj" />
     <ProjectReference Include="../Vox.Speech/Vox.Speech.csproj" />
     <ProjectReference Include="../Vox.Windows/Vox.Windows.csproj" />
+    <Resource Include="Assets\vox.ico" />
     <None Include="../../THIRD_PARTY_NOTICES.md" Link="THIRD_PARTY_NOTICES.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

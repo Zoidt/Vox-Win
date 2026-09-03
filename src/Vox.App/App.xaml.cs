@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Drawing;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -102,18 +101,10 @@ public partial class App : Application
 
     private void CreateTray()
     {
-        using var bitmap = new Bitmap(32, 32);
-        using (var graphics = Graphics.FromImage(bitmap))
-        {
-            graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            graphics.Clear(System.Drawing.Color.Transparent);
-            using var brush = new SolidBrush(System.Drawing.Color.FromArgb(164, 186, 255));
-            var heights = new[] { 8, 17, 25, 14, 9 };
-            for (var i = 0; i < heights.Length; i++) graphics.FillRectangle(brush, 3 + i * 6, (32 - heights[i]) / 2, 3, heights[i]);
-        }
-        var handle = bitmap.GetHicon();
-        using (var temporary = Icon.FromHandle(handle)) _icon = (Icon)temporary.Clone();
-        DestroyIcon(handle);
+        var resource = GetResourceStream(new Uri("pack://application:,,,/Assets/vox.ico"))
+            ?? throw new InvalidOperationException("The Vox application icon is missing.");
+        using (resource.Stream)
+        using (var loaded = new Icon(resource.Stream)) _icon = (Icon)loaded.Clone();
         _tray = new Forms.NotifyIcon { Icon = _icon, Text = "Vox · local dictation", Visible = true };
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add("Settings", null, (_, _) => Dispatcher.BeginInvoke(ShowSettings));
@@ -156,6 +147,4 @@ public partial class App : Application
         _showEvent?.Dispose(); _mutex?.Dispose();
         base.OnExit(e);
     }
-
-    [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool DestroyIcon(nint icon);
 }
