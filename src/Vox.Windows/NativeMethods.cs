@@ -14,6 +14,7 @@ internal static class NativeMethods
     [DllImport("user32.dll")] internal static extern uint GetClipboardSequenceNumber();
     [DllImport("user32.dll", SetLastError = true)] internal static extern uint SendInput(uint count, Input[] inputs, int size);
     [DllImport("user32.dll")] internal static extern uint GetWindowThreadProcessId(nint window, out uint process);
+    [DllImport("dwmapi.dll")] internal static extern int DwmSetWindowAttribute(nint window, int attribute, ref int value, int size);
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct KeyboardHookData { public uint Key, Scan, Flags, Time; public nuint Extra; }

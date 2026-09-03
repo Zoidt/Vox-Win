@@ -7,7 +7,7 @@
       <StackPanel Margin="28,24,28,20">
         <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
           <StackPanel Orientation="Horizontal"><TextBlock Text="≋" FontSize="30" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,0" /><TextBlock Text="Vox" FontSize="28" FontWeight="SemiBold" /></StackPanel>
-          <Border Grid.Column="1" Background="#293850" CornerRadius="12" Padding="10,5" VerticalAlignment="Center"><TextBlock Text="ON DEVICE" FontSize="10" Foreground="{StaticResource AccentBrush}" /></Border>
+          <Border Grid.Column="1" Background="#151D2C" CornerRadius="12" Padding="10,5" VerticalAlignment="Center"><TextBlock Text="ON DEVICE" FontSize="10" Foreground="{StaticResource AccentBrush}" /></Border>
         </Grid>
         <TextBlock Text="Your voice, wherever you type." Foreground="{StaticResource MutedBrush}" Margin="0,0,0,25" />
         <TextBlock Text="Recording" Style="{StaticResource MutedText}" Margin="0,0,0,9" />
@@ -35,7 +35,7 @@
         </Border>
         <Button Content="Refresh microphones" Click="RefreshMicrophones" HorizontalAlignment="Right" Padding="8,5" FontSize="11" Margin="0,7,0,20" IsEnabled="{Binding CanConfigure}" />
         <TextBlock Text="Speech model" Style="{StaticResource MutedText}" Margin="0,0,0,9" />
-        <Border Background="#293850" CornerRadius="9" Padding="16,14">
+        <Border Background="#151D2C" CornerRadius="9" Padding="16,14">
           <StackPanel>
             <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock Text="Parakeet v3" FontWeight="SemiBold" /><TextBlock Grid.Column="1" Text="English" Foreground="{StaticResource AccentBrush}" FontSize="12" /></Grid>
             <TextBlock Text="{Binding ModelStatus}" TextWrapping="Wrap" Style="{StaticResource MutedText}" Margin="0,5,0,0" />

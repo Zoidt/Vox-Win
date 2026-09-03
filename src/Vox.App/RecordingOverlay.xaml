@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" WindowStyle="None" AllowsTransparency="True"
         Background="Transparent" Topmost="True" ShowInTaskbar="False" ShowActivated="False" Focusable="False"
         SizeToContent="WidthAndHeight" ResizeMode="NoResize">
-  <Border Background="#F0232934" BorderBrush="#566586" BorderThickness="1" CornerRadius="18" Padding="22,12">
+  <Border Background="#F5090B10" BorderBrush="#35415A" BorderThickness="1" CornerRadius="18" Padding="22,12">
     <StackPanel Orientation="Horizontal">
       <TextBlock Text="≋" Foreground="{StaticResource AccentBrush}" FontSize="30" VerticalAlignment="Center" Margin="0,0,15,0" />
       <StackPanel>

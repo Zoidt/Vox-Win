@@ -17,6 +17,7 @@ public partial class MainWindow : Window
     {
         _controller = controller;
         InitializeComponent();
+        SourceInitialized += (_, _) => WindowAppearance.UseDarkTitleBar(this);
         DataContext = controller;
         ApplyPreferences();
         _controller.ShortcutCaptureCompleted += EndCapture;
