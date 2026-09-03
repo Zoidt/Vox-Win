@@ -11,6 +11,7 @@ These checks require a real microphone and target applications. They have not be
 - Rebind the hotkey to a chord, including any remapped F13-F24 key you use, restart Vox, and verify the binding and microphone preference persist. Hide Vox or focus another ordinary desktop app and confirm the shortcut remains global. Escape should cancel shortcut capture without changing the old binding.
 - Disconnect the selected microphone while recording. Confirm an error is visible in settings, audio capture ends, and selecting an available microphone recovers.
 - Hide the settings window and verify dictation still works. Launch Vox again and confirm it opens the existing settings window rather than creating a second listener.
+- Add `open ai` → `OpenAI` in Text replacements. Preview `I use OPEN AI.` and confirm `I use OpenAI.` Save, quit, and reopen Vox; confirm the rule persists. Dictate the phrase in a scratch document and check that insertion, Copy last, and Paste last again use the replacement. Cancel an edit and verify it was not saved; remove the rule and save to stop applying it to new dictations.
 - Check your actual apps, especially browser editors and terminals. Test in scratch fields; pasting text can have different consequences in a terminal.
 - Quit Vox and verify it leaves no active microphone capture or tray icon. Check Task Manager for idle CPU after loading and after dictation, and note any interference with your other workloads.
 

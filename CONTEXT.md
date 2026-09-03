@@ -7,3 +7,4 @@
 - **Locked recording**: Dictation started by double-tapping the hotkey and finished by pressing it again, without requiring the hotkey to remain held.
 - **Recording indicator**: A small floating status surface that shows when Vox is actively capturing speech.
 - **Cancel**: Stop the current recording without transcribing or inserting any text; triggered with Escape.
+- **Text replacement**: A saved whole-word or phrase substitution applied to the completed transcript before insertion, with exact output spelling chosen by the user.

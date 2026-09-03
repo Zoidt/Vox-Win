@@ -25,6 +25,12 @@ For development, run `dotnet run --project src/Vox.App -c Release`.
 
 Close or hide the settings window to keep using Vox from the tray. Open it again from the tray or launch Vox a second time. **Quit** releases the microphone, model, and global keyboard listener.
 
+## Text replacements
+
+Open **Text replacements → Edit dictionary**, choose **Add rule**, and enter the phrase Vox transcribes under **When Vox hears** and your preferred spelling under **Write instead**. For example, `open ai` → `OpenAI`. Use **Try your rules → Preview** to test sample text, then **Save replacements**. Cancel discards edits. Rules are stored locally with your shortcut and survive restarts.
+
+Rules match whole words or phrases without regard to capitalization; spaces between words can vary. Longer phrases take priority. Replacements preserve exactly the spelling you enter and run once, so one rule's output does not trigger another rule. A blank replacement deletes the matched phrase. Punctuation outside the match stays unchanged. This changes the completed transcript before paste, Copy last, and Paste last again; it does not retrain the speech model or change earlier dictations. The dictation hotkey is paused while the dictionary editor is open so you can type freely.
+
 ## Agreed first-release behavior
 
 - Configurable global dictation hotkey.
@@ -64,9 +70,11 @@ dotnet test tests/Vox.Core.Tests -c Release
 dotnet run --project tools/Vox.Probe -c Release -- --download path/to/sample.wav
 ```
 
-The tests cover hold/double-tap/cancel timing, repeats and busy input, settings persistence, and corrupt-settings recovery. `Vox.Probe` validates actual native inference using a supplied WAV; it does not capture a microphone. Windows CI builds, tests, and packages the app without downloading the speech model.
+The tests cover hold/double-tap/cancel timing, repeats and busy input, settings persistence, corrupt-settings recovery, and text replacement matching and precedence. `Vox.Probe` validates actual native inference using a supplied WAV; it does not capture a microphone. Windows CI builds, tests, and packages the app without downloading the speech model.
 
 For development checks, `Vox.exe --render-preview output.png` renders the actual WPF layout offscreen with example ready state, without activating hotkeys or capturing audio. `Vox.exe --check-startup output.json` verifies the real model and keyboard listener, enumerates microphones without recording, writes a small diagnostic report, then exits. Quit any running Vox instance first.
+
+`Vox.exe --render-replacements-preview output.png` renders the dictionary editor with example rules without changing your saved settings.
 
 Before relying on the app, run the [hands-on acceptance checks](docs/acceptance.md).
 
