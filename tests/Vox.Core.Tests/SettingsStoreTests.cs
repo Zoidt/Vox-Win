@@ -14,10 +14,11 @@ public sealed class SettingsStoreTests : IDisposable
         var settings = new VoxSettings
         {
             Shortcut = new(0x20, HotkeyModifiers.Control | HotkeyModifiers.Shift, "Ctrl + Shift + Space"),
-            MicrophoneId = "test-endpoint", SoundCues = false, StartWithWindows = true
+            MicrophoneId = "test-endpoint", SoundCues = false, StartWithWindows = true,
+            Replacements = [new("open ai", "OpenAI"), new("vox", "Vox")]
         };
         new SettingsStore(SettingsPath).Save(settings);
-        Assert.Equal(settings, new SettingsStore(SettingsPath).Load());
+        Assert.Equivalent(settings, new SettingsStore(SettingsPath).Load());
         Assert.False(File.Exists(SettingsPath + ".tmp"));
     }
 
@@ -31,9 +32,33 @@ public sealed class SettingsStoreTests : IDisposable
         Directory.CreateDirectory(_folder);
         File.WriteAllText(SettingsPath, contents);
         var store = new SettingsStore(SettingsPath);
-        Assert.Equal(new VoxSettings(), store.Load());
+        Assert.Equivalent(new VoxSettings(), store.Load());
         Assert.NotNull(store.LoadWarning);
         Assert.Equal(contents, File.ReadAllText(SettingsPath));
+    }
+
+    [Fact]
+    public void OldSettingsLoadWithoutReplacementRules()
+    {
+        Directory.CreateDirectory(_folder);
+        File.WriteAllText(SettingsPath, "{\"Shortcut\": {\"VirtualKey\": 124, \"Modifiers\": 2, \"Label\": \"Alt + F13\"}}");
+        var settings = new SettingsStore(SettingsPath).Load();
+        Assert.Equal(124, settings.Shortcut.VirtualKey);
+        Assert.Empty(settings.Replacements);
+    }
+
+    [Theory]
+    [InlineData("null")]
+    [InlineData("[{\"From\":\"\",\"To\":\"word\"}]")]
+    public void InvalidRulesDoNotResetTheShortcut(string rules)
+    {
+        Directory.CreateDirectory(_folder);
+        File.WriteAllText(SettingsPath, "{\"Shortcut\":{\"VirtualKey\":124,\"Label\":\"F13\"},\"Replacements\":" + rules + "}");
+        var store = new SettingsStore(SettingsPath);
+        var settings = store.Load();
+        Assert.Equal(124, settings.Shortcut.VirtualKey);
+        Assert.Empty(settings.Replacements);
+        Assert.NotNull(store.LoadWarning);
     }
 
     public void Dispose() { if (Directory.Exists(_folder)) Directory.Delete(_folder, true); }
