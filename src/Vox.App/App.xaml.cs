@@ -66,8 +66,22 @@ public partial class App : Application
             _controller.PropertyChanged += ControllerChanged;
             _showRegistration = ThreadPool.RegisterWaitForSingleObject(_showEvent, (_, _) => Dispatcher.BeginInvoke(ShowSettings), null, Timeout.Infinite, false);
             CreateTray();
-            if (!e.Args.Contains("--background")) ShowSettings();
+            var checkStartup = e.Args is ["--check-startup", _];
+            if (!e.Args.Contains("--background") && !checkStartup) ShowSettings();
             await _controller.InitializeAsync();
+            if (checkStartup)
+            {
+                var report = new
+                {
+                    ModelReady = _controller.IsReady,
+                    KeyboardListenerReady = _controller.HotkeyAvailable,
+                    MicrophoneChoices = _controller.Microphones.Count,
+                    Status = _controller.Status
+                };
+                File.WriteAllText(e.Args[1], System.Text.Json.JsonSerializer.Serialize(report));
+                if (!report.ModelReady || !report.KeyboardListenerReady) Environment.ExitCode = 1;
+                await QuitAsync();
+            }
         }
         catch (Exception ex)
         {
@@ -75,6 +89,11 @@ public partial class App : Application
             {
                 File.WriteAllText(failedPath + ".error.txt", ex.ToString());
                 Shutdown(1); return;
+            }
+            if (e.Args is ["--check-startup", var checkPath])
+            {
+                File.WriteAllText(checkPath, System.Text.Json.JsonSerializer.Serialize(new { Error = ex.Message }));
+                await QuitAsync(); Environment.ExitCode = 1; return;
             }
             MessageBox.Show(ex.Message, "Vox could not start", MessageBoxButton.OK, MessageBoxImage.Error);
             await QuitAsync();
