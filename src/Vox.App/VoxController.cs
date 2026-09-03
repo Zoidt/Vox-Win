@@ -27,6 +27,7 @@ public sealed class VoxController : INotifyPropertyChanged, IAsyncDisposable
     private nint _target;
     private long _started;
     private bool _processing;
+    private bool _inserting;
     private bool _modelBusy;
     private bool _disposed;
     private bool _replayNext;
@@ -50,12 +51,13 @@ public sealed class VoxController : INotifyPropertyChanged, IAsyncDisposable
     public bool CanDownload => !_processing && _capture is null && !_modelBusy && !IsReady;
     public bool IsOverlayVisible => _capture is not null || _processing || _replayNext;
     public double ModelProgress => _modelProgress * 100;
-    public string OverlayTitle => _replayNext ? "Paste last dictation" : _processing ? "Transcribing…" : _gesture.Mode == RecordingMode.Locked ? "Recording · locked" : "Listening";
+    public string OverlayTitle => _replayNext ? "Paste last dictation" : _inserting ? "Inserting text…" : _processing ? "Transcribing…" : _gesture.Mode == RecordingMode.Locked ? "Recording · locked" : "Listening";
     public string OverlayHint
     {
         get
         {
             if (_replayNext) return "Focus a text field, then press your hotkey · Esc cancels";
+            if (_inserting) return "Keep your text field focused · release modifier keys";
             if (_processing) return "Esc to discard";
             var elapsed = TimeSpan.FromMilliseconds(Environment.TickCount64 - _started);
             var instruction = _gesture.Mode == RecordingMode.Locked ? "Press hotkey to finish" : "Release to finish";
@@ -233,6 +235,7 @@ public sealed class VoxController : INotifyPropertyChanged, IAsyncDisposable
             if (string.IsNullOrWhiteSpace(result.Text)) { SetStatus("No speech detected. Try again closer to the microphone."); return; }
             _lastTranscript = result.Text;
             Notify(nameof(HasTranscript)); Notify(nameof(LastSummary));
+            _inserting = true; Refresh();
             await _insertion.InsertAsync(result.Text, _target, token);
             SetStatus($"Text sent · transcription {result.Elapsed.TotalMilliseconds:F0} ms");
         }
@@ -248,6 +251,7 @@ public sealed class VoxController : INotifyPropertyChanged, IAsyncDisposable
             Array.Clear(samples);
             capture.Dispose(); _capture = null;
             _processing = false;
+            _inserting = false;
             _gesture.Complete();
             Refresh();
         }
@@ -265,13 +269,14 @@ public sealed class VoxController : INotifyPropertyChanged, IAsyncDisposable
     {
         if (_lastTranscript is null) return;
         _processing = true;
+        _inserting = true;
         _session?.Dispose();
         _session = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
         Refresh();
         try { await _insertion.InsertAsync(_lastTranscript, _target, _session.Token); SetStatus("Last dictation sent"); }
         catch (OperationCanceledException) { SetStatus("Paste cancelled"); }
         catch (Exception ex) { SetStatus(ex.Message); }
-        finally { _processing = false; _gesture.Complete(); Refresh(); }
+        finally { _processing = false; _inserting = false; _gesture.Complete(); Refresh(); }
     }
 
     public void RefreshMicrophones()
@@ -307,7 +312,7 @@ public sealed class VoxController : INotifyPropertyChanged, IAsyncDisposable
     public void SetStatus(string message) { _status = message; Notify(nameof(Status)); }
     private void Refresh()
     {
-        if (_keyboard is not null) _keyboard.CanCancel = IsOverlayVisible;
+        if (_keyboard is not null) _keyboard.CanCancel = IsOverlayVisible && !_inserting;
         foreach (var property in new[] { nameof(IsReady), nameof(IsModelBusy), nameof(CanConfigure), nameof(CanDownload), nameof(IsOverlayVisible), nameof(OverlayTitle), nameof(OverlayHint), nameof(ModelStatus) }) Notify(property);
     }
     private void Notify([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new(name));
