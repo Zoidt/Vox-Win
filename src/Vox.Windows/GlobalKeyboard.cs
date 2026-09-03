@@ -39,7 +39,9 @@ public sealed class GlobalKeyboard : IDisposable
             var key = Marshal.PtrToStructure<NativeMethods.KeyboardHookData>(data);
             var down = message == 0x100 || message == 0x104;
             var up = message == 0x101 || message == 0x105;
-            if ((key.Flags & 0x10) == 0 && (down || up))
+            // Macro tools and programmable keyboards commonly emit injected F13-F24 keys.
+            // Accept those, but ignore the marked Ctrl+V sequence Vox sends when inserting text.
+            if (key.Extra != NativeMethods.VoxInputMarker && (down || up))
             {
                 UpdateModifierState((int)key.Key, down);
                 if (_capture is not null)

@@ -8,7 +8,7 @@ These checks require a real microphone and target applications. They have not be
 - Put text on the clipboard before dictation. After insertion, paste manually in a separate scratch field and confirm the original clipboard text was restored. Repeat with the clipboard formats you use, such as copied files or images.
 - Switch to another window during transcription. Confirm Vox does not paste there; choose Paste last again and deliberately select your destination.
 - Try several consecutive recordings, rapid taps, long holds, silence, and background noise. Confirm there is no stuck recording, repeated insertion, or overlapping transcription.
-- Rebind the hotkey to a chord, restart Vox, and verify the binding and microphone preference persist. Escape should cancel shortcut capture without changing the old binding.
+- Rebind the hotkey to a chord, including any remapped F13-F24 key you use, restart Vox, and verify the binding and microphone preference persist. Hide Vox or focus another ordinary desktop app and confirm the shortcut remains global. Escape should cancel shortcut capture without changing the old binding.
 - Disconnect the selected microphone while recording. Confirm an error is visible in settings, audio capture ends, and selecting an available microphone recovers.
 - Hide the settings window and verify dictation still works. Launch Vox again and confirm it opens the existing settings window rather than creating a second listener.
 - Check your actual apps, especially browser editors and terminals. Test in scratch fields; pasting text can have different consequences in a terminal.

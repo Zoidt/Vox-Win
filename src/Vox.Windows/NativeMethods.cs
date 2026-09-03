@@ -4,6 +4,7 @@ namespace Vox.Windows;
 
 internal static class NativeMethods
 {
+    internal const nuint VoxInputMarker = 0x564F5831;
     internal delegate nint HookProc(int code, nint message, nint data);
     [DllImport("user32.dll", SetLastError = true)] internal static extern nint SetWindowsHookEx(int type, HookProc callback, nint module, uint thread);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool UnhookWindowsHookEx(nint hook);
@@ -35,6 +36,6 @@ internal static class NativeMethods
     internal static Input Key(ushort key, bool up) => new()
     {
         Type = 1,
-        Data = new() { Keyboard = new() { Key = key, Flags = up ? 2u : 0u } }
+        Data = new() { Keyboard = new() { Key = key, Flags = up ? 2u : 0u, Extra = VoxInputMarker } }
     };
 }
